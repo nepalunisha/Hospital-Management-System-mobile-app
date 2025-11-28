@@ -1,0 +1,7 @@
+<?xml version='1.0' encoding='utf-8'?>
+<resources>
+    <string name="app_name">insuranceaid-app</string>
+    <string name="title_activity_main">insuranceaid-app</string>
+    <string name="package_name">app.lovable.e264a0e706d548d6b526fcd6d7d75f55</string>
+    <string name="custom_url_scheme">app.lovable.e264a0e706d548d6b526fcd6d7d75f55</string>
+</resources>
