@@ -100,12 +100,12 @@ const StaffLogin = () => {
           className="w-40 h-40 rounded-full bg-white p-3 shadow-xl"
         />
 
-        {/* Back */}
+        {/* Back*/}
         <button
           onClick={() => navigate("/")}
-          className="absolute top-10 left-4 flex items-center gap-2 text-white font-medium"
+          className="absolute top-6 left-4 flex items-center gap-2 text-white font-medium"
         >
-          <ArrowLeft className="h-6 w-6 " /> 
+          <ArrowLeft className="h-6 w-6" /> 
         </button>
 
         {/* Title */}
@@ -213,7 +213,7 @@ const StaffLogin = () => {
           {/* Login Button */}
           <Button
             type="submit"
-            className="w-full py-3 rounded-xl bg-[#1ebac1] text-white text-lg shadow-md hover:scale-[1.02] transition"
+            className="w-full py-3 rounded-xl bg-[#1ebac1] text-white text-lg shadow-md hover:[#1ebac1] hover:scale-[1.02] transition"
           >
             Log In
           </Button>
