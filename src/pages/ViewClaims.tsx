@@ -6,22 +6,48 @@ const ViewClaims: React.FC = () => {
   const { claims } = useClaims();
   const navigate = useNavigate();
 
+  const openDocument = (base64: string, fileName?: string) => {
+    if (!base64) return;
+
+
+    const base64Data = base64.includes(",") ? base64.split(",")[1] : base64;
+
+    const byteCharacters = atob(base64Data);
+    const byteNumbers = new Array(byteCharacters.length);
+    for (let i = 0; i < byteCharacters.length; i++) {
+      byteNumbers[i] = byteCharacters.charCodeAt(i);
+    }
+    const byteArray = new Uint8Array(byteNumbers);
+
+    // file type
+    const fileType = fileName?.split(".").pop()?.toLowerCase();
+    const mimeType =
+      fileType === "png" || fileType === "jpg" || fileType === "jpeg"
+        ? `image/${fileType}`
+        : "application/pdf";
+
+    const blob = new Blob([byteArray], { type: mimeType });
+    const blobUrl = URL.createObjectURL(blob);
+
+    window.open(blobUrl, "_blank");
+  };
+
   return (
     <div className="min-h-screen bg-[#f8fafc] flex flex-col pb-10 px-4">
-      {/* Back Button */}
+      {/* Back */}
       <div className="absolute top-6 left-4 mt-8">
         <button
           onClick={() => navigate("/staff-dashboard")}
           className="flex items-center gap-2 text-[#1ebac1] font-semibold text-base"
         >
-          <ArrowLeft className="h-5 w-5" />
-          <span className="text-xl font-bold text-[#1ebac1]">
+          <ArrowLeft className="h-6 w-6" />
+          <span className="text-xl font-bold text-[#1ebac1] ml-2">
             View Submitted Claims
           </span>
         </button>
       </div>
 
-      {/* Claims List */}
+      {/* claim list */}
       <div className="flex flex-col mt-20 gap-4">
         {claims.length === 0 && (
           <p className="text-center text-gray-500 mt-10">
@@ -34,13 +60,12 @@ const ViewClaims: React.FC = () => {
             key={index}
             className="bg-white rounded-xl shadow p-4 flex flex-col gap-2 border border-gray-200"
           >
-            {/* Header */}
+          
             <div className="flex justify-between items-center">
               <p className="font-semibold text-sm">{c.patient?.name}</p>
               <p className="text-xs text-gray-500">{c.createdAt}</p>
             </div>
 
-            {/* Claim Info */}
             <div className="flex justify-between text-xs text-gray-600">
               <span>Claim Code: {c.claimCode}</span>
               <span>Amount: {c.totalAmount?.toFixed(2) || "-"}</span>
@@ -51,22 +76,21 @@ const ViewClaims: React.FC = () => {
               <span>Outcome: {c.outcome}</span>
             </div>
 
-            {/* Uploaded Document */}
-            <div className="mt-2 flex items-center gap-2">
-              <span className="inline-block bg-[#1ebac1] text-white px-3 py-1 rounded text-xs">
-                {c.prescriptionFileName || "No Document Uploaded"}
-              </span>
-
-              {c.prescriptionFileBase64 && (
-                <a
-
-                  href={c.prescriptionFileBase64}
-                  target="_blank"
-                  rel="noopener noreferrer"
-                  className="text-xs underline text-[#1ebac1]"
+            {/* Uploaded Docu */}
+            <div className="mt-2">
+              {c.prescriptionFileBase64 ? (
+                <button
+                  onClick={() =>
+                    openDocument(c.prescriptionFileBase64, c.prescriptionFileName)
+                  }
+                  className="inline-block bg-[#1ebac1] text-white px-3 py-1 rounded text-xs cursor-pointer"
                 >
-                  View Document
-                </a>
+                  {c.prescriptionFileName || "Open Document"}
+                </button>
+              ) : (
+                <span className="inline-block bg-gray-300 text-white px-3 py-1 rounded text-xs">
+                  No Document Uploaded
+                </span>
               )}
             </div>
           </div>
