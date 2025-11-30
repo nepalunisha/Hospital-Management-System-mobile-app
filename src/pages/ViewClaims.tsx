@@ -76,7 +76,7 @@ const ViewClaims: React.FC = () => {
               <span>Outcome: {c.outcome}</span>
             </div>
 
-            {/* Uploaded Docu */}
+            {/* Uploaded Doc */}
             <div className="mt-2">
               {c.prescriptionFileBase64 ? (
                 <button
