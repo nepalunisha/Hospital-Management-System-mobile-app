@@ -152,7 +152,7 @@ const StaffPrepareClaim : React.FC = () => {
     <div className="min-h-screen bg-[#f8fafc] flex flex-col pb-10 px-4">
       <div className="fixed top-6 left-4 z-50">
         <button onClick={() => navigate("/staff-dashboard")} className="flex items-center gap-2 text-[#1ebac1] font-semibold text-base">
-          <ArrowLeft className="h-5 w-5" />
+          <ArrowLeft className="h-6 w-6" />
         </button>
       </div>
 
