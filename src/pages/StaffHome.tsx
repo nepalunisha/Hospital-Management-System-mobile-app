@@ -54,7 +54,7 @@ const StaffHome = () => {
 
       {/* Search */}
       <div className="relative mb-8 max-w-md w-full">
-        <div className="flex items-center bg-white rounded-full border border-[#1ebac1] px-4 py-2 shadow-md">
+        <div className="flex items-center bg-white rounded-xl border border-[#1ebac1] px-4 py-2 shadow-md">
           <input
             type="text"
             placeholder="Search..."
@@ -62,7 +62,7 @@ const StaffHome = () => {
             onChange={handleSearchChange}
             className="flex-1 outline-none px-2 py-1 text-[#1ebac1]"
           />
-          <Search className="h-5 w-5 text-[#1ebac1]" />
+          <Search className="h-6 w-6 text-[#1ebac1]" />
         </div>
 
         {/* Suggestion  */}
@@ -89,8 +89,8 @@ const StaffHome = () => {
           onClick={() => navigate("/staff-dashboard")}
           className="flex flex-col items-center cursor-pointer"
         >
-          <div className="bg-[#1ebac1] text-white rounded-full p-2 shadow-lg flex items-center justify-center hover:scale-110 transition-transform">
-            <Send className="h-4 w-4" />
+          <div className="bg-[#1ebac1] text-white rounded-full p-2 shadow-lg flex items-center justify-center hover:[#1ebac1] hover:scale-110 transition-transform">
+            <Send className="h-5 w-5" />
           </div>
           <span className="mt-2 text-[#1ebac1] text-sm font-medium text-center">
             Prepare Claim
@@ -102,8 +102,8 @@ const StaffHome = () => {
           onClick={() => navigate("/View-Claims")}
           className="flex flex-col items-center cursor-pointer"
         >
-          <div className="bg-[#1ebac1] text-white rounded-full p-2 shadow-lg flex items-center justify-center hover:scale-110 transition-transform">
-            <FileText className="h-4 w-4" />
+          <div className="bg-[#1ebac1] text-white rounded-full p-2 shadow-lg flex items-center justify-center hover:[#1ebac1] hover:scale-110 transition-transform">
+            <FileText className="h-5 w-5" />
           </div>
           <span className="mt-2 text-[#1ebac1] text-sm font-medium text-center">
             Claim History
@@ -115,8 +115,8 @@ const StaffHome = () => {
           onClick={() => navigate("/upload-documents")}
           className="flex flex-col items-center cursor-pointer"
         >
-          <div className="bg-[#1ebac1] text-white rounded-full p-2 shadow-lg flex items-center justify-center hover:scale-110 transition-transform">
-            <Upload className="h-4 w-4" />
+          <div className="bg-[#1ebac1] text-white rounded-full p-2 shadow-lg flex items-center justify-center hover:[#1ebac1] hover:scale-110 transition-transform">
+            <Upload className="h-5 w-5" />
           </div>
           <span className="mt-2 text-[#1ebac1] text-sm font-medium text-center">
             Upload Documents
