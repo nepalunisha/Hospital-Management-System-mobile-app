@@ -4,12 +4,10 @@ import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
 import { useNavigate, useLocation } from "react-router-dom";
 import { useToast } from "@/hooks/use-toast";
-import { ArrowLeft, Upload, FileText } from "lucide-react";
+import { ArrowLeft, Upload, FileText, Camera as CameraIcon } from "lucide-react";
 import Logo from "../components/ui/Logo.png";
 import { useClaims } from "./ClaimsContext";
 import { Card, CardContent } from "@/components/ui/card";
-
-
 
 const billData = {
   hospital: {
@@ -51,7 +49,8 @@ const billData = {
   ],
 };
 
-const StaffPrepareClaim : React.FC = () => {
+
+const StaffPrepareClaim: React.FC = () => {
   const navigate = useNavigate();
   const location = useLocation();
   const { toast } = useToast();
@@ -67,26 +66,28 @@ const StaffPrepareClaim : React.FC = () => {
   const [accessGranted, setAccessGranted] = useState(false);
 
 
+  const [showOptions, setShowOptions] = useState(false);
+
+  const [showConfirmModal, setShowConfirmModal] = useState(false);
+  const [claimData, setClaimData] = useState<any>(null);
+
   const fileToBase64 = (file: File): Promise<string> => {
-  return new Promise((resolve, reject) => {
-    const reader = new FileReader();
-    reader.readAsDataURL(file);
-    reader.onload = () => resolve(reader.result as string);
-    reader.onerror = error => reject(error);
-  });
-};
+    return new Promise((resolve, reject) => {
+      const reader = new FileReader();
+      reader.readAsDataURL(file);
+      reader.onload = () => resolve(reader.result as string);
+      reader.onerror = (error) => reject(error);
+    });
+  };
 
   useEffect(() => {
-    const checkLogin = async () => {
-      if (!patient) {
-        toast({ title: "Access Denied", variant: "destructive" });
-        navigate("/staff-dashboard");
-      } else {
-        setClaimCode("CLM" + Date.now());
-        setAccessGranted(true);
-      }
-    };
-    checkLogin();
+    if (!patient) {
+      toast({ title: "Access Denied", variant: "destructive" });
+      navigate("/staff-dashboard");
+    } else {
+      setClaimCode("CLM" + Date.now());
+      setAccessGranted(true);
+    }
   }, [navigate, patient, toast]);
 
   const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
@@ -97,50 +98,65 @@ const StaffPrepareClaim : React.FC = () => {
     }
   };
 
+  const takePhoto = () => {
+    toast({ title: "Take Photo clicked" });
+  };
 
-
-
-  const handleSubmit = async (e: React.FormEvent) => {
+  const handlePrepareClaim = async (e: React.FormEvent) => {
     e.preventDefault();
     if (!nmcNumber.trim()) {
-      toast({ title: "Error", description: "Please enter NMC Number", variant: "destructive" });
+      toast({
+        title: "Error",
+        description: "Please enter NMC Number",
+        variant: "destructive",
+      });
       return;
     }
 
+    const totalAmount = billData.visits.reduce((a, v) => a + v.amount, 0);
+    setClaimData({
+      patient,
+      claimCode,
+      createdAt: new Date().toLocaleString(),
+      prescriptionFileName: prescriptionFile?.name || "",
+      prescriptionFileBase64: "",
+      responseStatus: "Pending",
+      outcome: "-",
+      nmcNumber,
+      comments,
+      totalAmount,
+    });
+
+    setShowConfirmModal(true);
+  };
+
+  const finalizeClaim = async (data: any) => {
+    setShowConfirmModal(false);
     setLoading(true);
     try {
+      let base64File = "";
+      if (prescriptionFile) {
+        base64File = await fileToBase64(prescriptionFile);
+      }
+      await addClaim({ ...data, prescriptionFileBase64: base64File });
 
-    let base64File = "";
-    if (prescriptionFile) {
-      base64File = await fileToBase64(prescriptionFile);
-    }
-        const totalAmount = billData.visits.reduce((a, v) => a + v.amount, 0);
-   
-      const newClaim = {
-        patient,
-        claimCode,
-        createdAt: new Date().toLocaleString(),
-        prescriptionFileName: prescriptionFile?.name || "",
-        prescriptionFileBase64: base64File,
-        responseStatus: "Pending",
-        outcome: "-",
-        nmcNumber,
-        comments,
-        totalAmount,
-      };
-
-      await addClaim(newClaim);
-
-      toast({ title: "Success", description: `Claim ${claimCode} submitted successfully!` });
+      toast({
+        title: "Success",
+        description: `Claim ${claimCode} prepared successfully!`,
+      });
 
       setNmcNumber("");
       setComments("");
       setFileName("No file chosen");
       setPrescriptionFile(null);
 
-      navigate("/staff-home"); 
+      navigate("/staff-home");
     } catch (error) {
-      toast({ title: "Error", description: "Failed to submit claim", variant: "destructive" });
+      toast({
+        title: "Error",
+        description: "Failed to prepare claim",
+        variant: "destructive",
+      });
     } finally {
       setLoading(false);
     }
@@ -151,7 +167,10 @@ const StaffPrepareClaim : React.FC = () => {
   return (
     <div className="min-h-screen bg-[#f8fafc] flex flex-col pb-10 px-4">
       <div className="fixed top-6 left-4 z-50">
-        <button onClick={() => navigate("/staff-dashboard")} className="flex items-center gap-2 text-[#1ebac1] font-semibold text-base">
+        <button
+          onClick={() => navigate("/staff-dashboard")}
+          className="flex items-center gap-2 text-[#1ebac1] font-semibold text-base"
+        >
           <ArrowLeft className="h-6 w-6" />
         </button>
       </div>
@@ -159,51 +178,95 @@ const StaffPrepareClaim : React.FC = () => {
       <div className="mt-20 max-w-2xl w-full mx-auto flex flex-col space-y-6">
         <div className="bg-blue-50 p-4 rounded-xl border border-[#00AEEF]">
           <p className="text-sm text-gray-600">Submitting claim for:</p>
-          <p className="text-xl font-bold text-[#1ebac1] mt-1">{patient?.name} ({patient?.id})</p>
+          <p className="text-xl font-bold text-[#1ebac1] mt-1">
+            {patient?.name} ({patient?.id})
+          </p>
         </div>
 
-        <form onSubmit={handleSubmit} className="space-y-5">
+        <form onSubmit={handlePrepareClaim} className="space-y-5">
           <div>
             <label className="text-sm text-gray-700">Claim Code</label>
             <Input value={claimCode} readOnly className="bg-gray-100 text-lg font-mono" />
           </div>
 
           <div>
-            <label className="text-sm text-gray-700">NMC Number <span className="text-red-500">*</span></label>
-            <Input placeholder="Enter NMC Number" value={nmcNumber} onChange={(e) => setNmcNumber(e.target.value)} required />
+            <label className="text-sm text-gray-700">
+              NMC Number <span className="text-red-500">*</span>
+            </label>
+            <Input
+              placeholder="Enter NMC Number"
+              value={nmcNumber}
+              onChange={(e) => setNmcNumber(e.target.value)}
+              required
+            />
           </div>
 
           <div>
             <label className="text-sm">Additional Comments</label>
-            <Textarea value={comments} onChange={(e) => setComments(e.target.value)} rows={3} className="resize-none" />
+            <Textarea
+              value={comments}
+              onChange={(e) => setComments(e.target.value)}
+              rows={3}
+              className="resize-none"
+            />
           </div>
 
+          {/* Doctor's Prescription Upload */}
           <div>
-            <label className="text-sm font-medium"><FileText className="inline h-4 w-4 mr-1" />Doctor's Prescription</label>
-            <div className="border-2 border-dashed p-5 mt-2 rounded-xl text-center">
-              <Upload className="h-8 w-8 text-[#1ebac1] mx-auto" />
-              <label className="cursor-pointer mt-2 inline-block">
-                <input type="file" className="hidden" onChange={handleFileChange} />
-                <span className="underline text-[#1ebac1]">Choose File</span>
-              </label>
-              <p className="text-xs mt-1">{fileName}</p>
-            </div>
+        <label className="text-sm font-medium flex items-center gap-1">
+          <FileText className="h-4 w-4" />
+          Doctor's Prescription
+        </label>
+
+        <div className="w-full max-w-sm mt-2 relative">
+          <div
+            className="border-2 border-dashed border-[#1ebac1] rounded-xl p-6 text-center cursor-pointer hover:border-[#1ebac1] transition bg-white"
+            onClick={() => setShowOptions(!showOptions)}
+          >
+            <Upload className="h-8 w-8 text-[#1ebac1] mx-auto mb-2" />
+            <p className="text-gray-500 text-sm">
+              {prescriptionFile ? "File Uploaded succesfully" : "Click to upload or Drag/drop files here"}
+            </p>
+            <p className="text-xs mt-2">{fileName}</p>
           </div>
 
-        {/* Bill Preview */}
+          {showOptions && (
+            <div className="absolute top-full left-0 w-full bg-white border shadow-lg rounded-lg mt-2 z-10">
+              <button
+                type="button"
+                onClick={takePhoto}
+                className="w-full text-left px-4 py-2 hover:bg-[#e0f4ff] flex items-center gap-2"
+              >
+                <CameraIcon className="h-4 w-4 text-[#1ebac1]" /> Take Photo
+              </button>
+
+        <label className="w-full text-left px-4 py-2 hover:bg-[#e0f4ff] flex items-center gap-2 cursor-pointer">
+          <FileText className="h-4 w-4 text-[#1ebac1]" /> Upload File
+          <input
+            type="file"
+            className="hidden"
+            onChange={(e) => {
+              const file = e.target.files?.[0];
+              if (file) {
+                setPrescriptionFile(file);
+                setFileName(file.name);
+                setShowOptions(false); 
+              }
+            }}
+          />
+              </label>
+            </div>
+          )}
+        </div>
+      </div>
+
+          {/* Bill  */}
           {["OPD", "Pharmacy", "Lab", "Diagnosis"].map((section) => (
             <Card key={section} className="mt-6 bg-transparent border border-gray-200">
               <CardContent>
-                <h3 className="font-bold text-[#1ebac1] mb-2 text-xs">
-                  {section} Invoice / Bill
-                </h3>
-
+                <h3 className="font-bold text-[#1ebac1] mb-2 text-xs">{section} Invoice / Bill</h3>
                 <div className="flex flex-col items-center text-center space-y-1 mb-3">
-                  <img
-                    src={Logo}
-                    alt="logo"
-                    className="w-8 h-8 object-contain"
-                  />
+                  <img src={Logo} alt="logo" className="w-8 h-8 object-contain" />
                   <p className="text-xs">{billData.hospital.name}</p>
                   <p className="text-xs">{billData.hospital.address}</p>
                   <p className="text-xs">Phone: {billData.hospital.phone}</p>
@@ -211,7 +274,7 @@ const StaffPrepareClaim : React.FC = () => {
                   <p className="font-bold text-lg mt-1">INVOICE BILL</p>
                 </div>
 
-                <div className="flex justify-between text-xs mb-2">
+                 <div className="flex justify-between text-xs mb-2">
                   <div>
                     <p><strong>ID:</strong> {billData.patient.id}</p>
                     <p><strong>Name:</strong> {billData.patient.name}</p>
@@ -321,13 +384,89 @@ const StaffPrepareClaim : React.FC = () => {
             </Card>
           ))}
 
-          <Button type="submit" disabled={loading} className="w-full bg-[#1ebac1] hover:[#1ebac1] text-white h-14 text-lg mt-5">
-            {loading ? "Submitting..." : "Submit Claim"}
+          <Button
+            type="submit"
+            disabled={loading}
+            className="w-full bg-[#1ebac1] hover:[#1ebac1] hover:bg-[#1ebac1] text-white h-14 text-lg mt-5"
+          >
+            {loading ? "Preparing..." : "Prepare Claim"}
           </Button>
         </form>
       </div>
-    </div>
+
+            {/* Bottom Sheet Confirmation Modal */}
+      {showConfirmModal && claimData && (
+        <div className="fixed inset-0 bg-black/50 z-50 flex items-end justify-center">
+          <div className="w-full bg-white rounded-t-2xl p-4 sm:p-6 max-h-[85vh] overflow-y-auto animate-slide-up">
+
+            <div className="w-12 h-1.5 bg-gray-300 rounded-full mx-auto mb-3"></div>
+
+            <h2 className="text-xl sm:text-2xl font-bold text-[#1ebac1] text-center mb-4">
+              Confirm Claim Submission
+            </h2>
+
+            <Card className="border border-gray-200 rounded-lg">
+              <CardContent className="space-y-2 text-sm sm:text-base">
+                <h3 className="font-bold text-[#1ebac1] text-sm">Patient & Claim Details</h3>
+                <p><strong>Patient:</strong> {claimData.patient.name} ({claimData.patient.id})</p>
+                <p><strong>Claim Code:</strong> {claimData.claimCode}</p>
+                <p><strong>NMC Number:</strong> {claimData.nmcNumber}</p>
+                <p><strong>Comments:</strong> {claimData.comments || "-"}</p>
+                <p><strong>Created At:</strong> {claimData.createdAt}</p>
+              </CardContent>
+            </Card>
+
+            <Card className="border border-gray-200 rounded-lg mt-3">
+              <CardContent className="space-y-2 text-sm sm:text-base">
+                <h3 className="font-bold text-[#1ebac1] text-sm">Invoice / Bill</h3>
+                <p><strong>Hospital:</strong> {billData.hospital.name}, {billData.hospital.address}</p>
+                <p><strong>Phone:</strong> {billData.hospital.phone} | <strong>PAN:</strong> {billData.hospital.pan}</p>
+                <p><strong>Invoice #:</strong> {billData.invoice.number}</p>
+                <p><strong>Date:</strong> {billData.invoice.date}</p>
+                <p><strong>Generated By:</strong> {billData.invoice.generatedBy}</p>
+                <p><strong>Generated At:</strong> {billData.invoice.generatedAt}</p>
+              </CardContent>
+            </Card>
+
+            {billData.visits.map((visit, idx) => (
+              <Card key={idx} className="border border-gray-200 rounded-lg mt-3">
+                <CardContent className="space-y-2 text-sm sm:text-base">
+                  <h3 className="font-bold text-[#1ebac1] text-sm">Visit #{idx + 1}</h3>
+                  <p><strong>Service:</strong> {visit.TestName || visit.medicine || visit.Details}</p>
+                  <p><strong>Amount:</strong> Rs {visit.amount.toFixed(2)}</p>
+                  <p><strong>Date:</strong> {visit.transactionDate || visit.SaleDate}</p>
+                </CardContent>
+              </Card>
+            ))}
+
+            <div className="text-right font-bold text-lg my-3">
+              Total: Rs {claimData.totalAmount.toFixed(2)}
+            </div>
+
+            <div className="flex flex-col sm:flex-row gap-3 mt-4">
+              <Button variant="outline" className="w-full"
+                onClick={() => setShowConfirmModal(false)}>
+                Cancel
+              </Button>
+
+              <Button className="bg-[#1ebac1] text-white w-full"
+                onClick={() => finalizeClaim(claimData)}>
+                Confirm & Submit
+              </Button>
+            </div>
+
+          </div>
+        </div>
+      )}
+
+    </div> 
   );
 };
 
+
+  
 export default StaffPrepareClaim;
+
+
+
+
