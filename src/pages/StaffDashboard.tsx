@@ -74,12 +74,15 @@ const StaffDashboard = () => {
     setSuggestions(filtered);
   };
 
-  const selectPatient = (patient: typeof mockPatients[0]) => {
-    setSelectedPatient(patient);
-    setSearchQuery("");
-    setSuggestions([]);
-    toast({ title: "Patient Selected", description: patient.name });
-  };
+   const selectPatient = (patient: typeof mockPatients[0]) => {
+  setSelectedPatient(patient);
+  setSearchQuery("");
+  setSuggestions([]);
+  toast({ title: "Patient Selected", description: patient.name });
+  navigate("/staff-prepare-claim", {
+    state: { patient, startDate, endDate },
+  });
+};
 
   const proceedToPrepareClaim = () => {
     if (!selectedPatient) {
@@ -146,10 +149,10 @@ const StaffDashboard = () => {
             >
               Change Patient
             </Button>
+            
           </div>
         )}
 
-        {/* Start Date */}
         <div className="w-full flex flex-col">
           <p className="text-xs text-[#1ebac1] mb-1 font-semibold">Billing Start Date (BS)</p>
           <div className="relative">
@@ -164,8 +167,6 @@ const StaffDashboard = () => {
             <Calendar className="absolute right-3 top-1/2 -translate-y-1/2 h-5 w-5 text-[#1ebac1] pointer-events-none" />
           </div>
         </div>
-
-        {/* End Date */}
         <div className="w-full flex flex-col">
           <p className="text-xs text-[#1ebac1] mb-1 font-semibold">Billing End Date (BS)</p>
           <div className="relative">
@@ -180,12 +181,11 @@ const StaffDashboard = () => {
           </div>
         </div>
 
-        {/* Submit Button */}
         <Button
-          className="w-full bg-[#1ebac1] py-7 text-white text-lg font-bold rounded-xl shadow-lg hover:[#1ebac1] hover:scale-105 transition-all mt-6"
+          className="w-full bg-[#1ebac1] hover:bg-[#1ebac1]  py-7 text-white text-lg font-bold rounded-xl shadow-lg hover:[#1ebac1] hover:scale-105 transition-all mt-6"
           onClick={proceedToPrepareClaim}
         >
-          Prepare Claim
+          Proceed
         </Button>
       </div>
     </div>
