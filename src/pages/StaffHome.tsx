@@ -36,7 +36,6 @@ const StaffHome = () => {
   return (
     <div className="min-h-screen bg-gradient-to-b from-[#f0f7ff] to-[#e0f0ff] flex flex-col items-center p-4">
       
-      {/* Back*/}
       <div className="flex items-center w-full max-w-sm mt-6 gap-14">
         <ArrowLeft
           className="h-6 w-6 text-[#1ebac1] cursor-pointer"
@@ -47,12 +46,11 @@ const StaffHome = () => {
         </h1>
       </div>
 
-      {/* Header */}
+  
       <div className="text-center mb-6">
         <p className="text-sm text-[#1ebac1]">Choose an option to proceed</p>
       </div>
 
-      {/* Search */}
       <div className="relative mb-8 max-w-md w-full">
         <div className="flex items-center bg-white rounded-xl border border-[#1ebac1] px-4 py-2 shadow-md">
           <input
@@ -64,8 +62,6 @@ const StaffHome = () => {
           />
           <Search className="h-6 w-6 text-[#1ebac1]" />
         </div>
-
-        {/* Suggestion  */}
         {filteredOptions.length > 0 && (
           <ul className="absolute z-10 mt-1 w-full bg-white border border-[#1ebac1] rounded-md shadow-lg max-h-40 overflow-y-auto">
             {filteredOptions.map((opt, index) => (
@@ -81,10 +77,8 @@ const StaffHome = () => {
         )}
       </div>
 
-      {/*  Buttons */}
       <div className="flex items-center gap-2 relative">
-        
-        {/* Prepare Claim */}
+
         <div
           onClick={() => navigate("/staff-dashboard")}
           className="flex flex-col items-center cursor-pointer"
@@ -97,7 +91,6 @@ const StaffHome = () => {
           </span>
         </div>
 
-        {/* Claim History */}
         <div
           onClick={() => navigate("/View-Claims")}
           className="flex flex-col items-center cursor-pointer"
@@ -110,7 +103,6 @@ const StaffHome = () => {
           </span>
         </div>
 
-        {/* Upload Documents */}
         <div
           onClick={() => navigate("/upload-documents")}
           className="flex flex-col items-center cursor-pointer"
