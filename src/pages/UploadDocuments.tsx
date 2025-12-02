@@ -1,5 +1,11 @@
 import { useState } from "react";
-import { Upload, FileText, Camera as CameraIcon, ArrowLeft } from "lucide-react";
+import {
+  Upload,
+  FileText,
+  Camera as CameraIcon,
+  ArrowLeft,
+  Image as GalleryIcon,
+} from "lucide-react";
 import { useNavigate } from "react-router-dom";
 import { Preferences } from "@capacitor/preferences";
 import { useToast } from "@/hooks/use-toast";
@@ -26,15 +32,31 @@ const UploadDocuments = () => {
     try {
       const image = await Camera.getPhoto({
         quality: 90,
-        allowEditing: false,
         resultType: CameraResultType.DataUrl,
         source: CameraSource.Camera,
       });
+
       setPhoto(image.dataUrl!);
-      setFileName("photo.jpg");
+      setFileName("captured-photo.jpg");
       setShowOptions(false);
     } catch (error) {
-      console.error("Camera error:", error);
+      console.log(error);
+    }
+  };
+
+  const pickFromGallery = async () => {
+    try {
+      const image = await Camera.getPhoto({
+        quality: 90,
+        resultType: CameraResultType.DataUrl,
+        source: CameraSource.Photos,
+      });
+
+      setPhoto(image.dataUrl!);
+      setFileName("gallery-photo.jpg");
+      setShowOptions(false);
+    } catch (error) {
+      console.log(error);
     }
   };
 
@@ -44,7 +66,7 @@ const UploadDocuments = () => {
       return;
     }
     if (!fileName || !photo) {
-      alert("Please choose or capture a file first");
+      alert("Please choose or capture a document first");
       return;
     }
 
@@ -58,11 +80,14 @@ const UploadDocuments = () => {
       photoData: photo,
     });
 
-    await Preferences.set({ key: "uploadedFiles", value: JSON.stringify(files) });
+    await Preferences.set({
+      key: "uploadedFiles",
+      value: JSON.stringify(files),
+    });
 
     toast({
       title: "Uploaded Successfully",
-      description: `Document of claim no.${claimNumber} submitted successfully!`,
+      description: `Document for claim #${claimNumber} submitted.`,
     });
 
     setClaimNumber("");
@@ -72,17 +97,15 @@ const UploadDocuments = () => {
   };
 
   return (
-    <div className="min-h-screen bg-[#f0f7ff] flex flex-col items-center p-4">
-      {/* Header */}
+    <div className="min-h-screen bg-[#f0f7ff] flex flex-col items-center p-4 pb-28">
       <div className="flex items-center w-full max-w-sm mt-6 gap-3">
         <ArrowLeft
-          className="h-6 w-6 text-[#1ebac1] cursor-pointer hover:text-[#17a2a8] transition"
+          className="h-6 w-6 text-[#1ebac1] cursor-pointer"
           onClick={() => navigate("/staff-home")}
         />
         <h2 className="text-xl font-bold text-[#1ebac1]">Upload Document</h2>
       </div>
 
-      {/* Claim Number */}
       <div className="w-full max-w-sm mt-6">
         <label className="text-sm text-gray-700 font-semibold">Claim Number</label>
         <input
@@ -90,63 +113,59 @@ const UploadDocuments = () => {
           placeholder="Enter Claim Number"
           value={claimNumber}
           onChange={(e) => setClaimNumber(e.target.value)}
-          className="w-full border border-[#1ebac1] rounded-lg p-2 mt-1 text-sm focus:outline-none focus:ring-2 focus:ring-[#1ebac1]"
+          className="w-full border border-[#1ebac1] rounded-lg p-2 mt-1 text-sm focus:ring-2 focus:ring-[#1ebac1]"
         />
       </div>
-      
-      {/* Upload Box */}
+
       <div
-        className="w-full max-w-sm mt-4 border-2 border-dashed border-[#1ebac1] rounded-xl p-6 text-center cursor-pointer hover:border-[#1ebac1] transition relative bg-white"
+        className="w-full max-w-sm mt-6 bg-white border border-[#1ebac1] rounded-xl p-6 text-center cursor-pointer shadow-sm hover:shadow-md transition relative"
         onClick={() => setShowOptions(!showOptions)}
       >
-        <Upload className="h-8 w-8 text-[#1ebac1] mx-auto mb-2" />
-        <p className="text-gray-500 text-sm">
-          Click to upload <br /> Drag and drop files here
+        <CameraIcon className="h-10 w-10 text-[#1ebac1] mx-auto" />
+        <p className="text-gray-600 text-sm mt-2">
+          Take Photo 
         </p>
 
         {showOptions && (
-          <div className="absolute top-full left-0 w-full bg-white border shadow-lg rounded-lg mt-2 z-10">
+          <div className="absolute top-full left-0 w-full bg-white border rounded-xl shadow-lg mt-2 py-2 z-20">
             <button
               onClick={takePhoto}
-              className="w-full text-left px-4 py-2 hover:bg-[#e0f4ff] flex items-center gap-2"
+              className="flex items-center gap-2 w-full px-4 py-2 hover:bg-[#e8faff]"
             >
-              <CameraIcon className="h-4 w-4 text-[#1ebac1]" /> Take Photo
+              <CameraIcon className="h-5 w-5 text-[#1ebac1]" /> Take Photo
             </button>
-            <label className="w-full text-left px-4 py-2 hover:bg-[#e0f4ff] flex items-center gap-2 cursor-pointer">
-              <FileText className="h-4 w-4 text-[#1ebac1]" /> Upload from Gallery
-              <input type="file" className="hidden" onChange={handleFileChange} />
-            </label>
-            <label className="w-full text-left px-4 py-2 hover:bg-[#e0f4ff] flex items-center gap-2 cursor-pointer">
-              <FileText className="h-4 w-4 text-[#1ebac1]" /> Upload from your Files
-              <input type="file" className="hidden" onChange={handleFileChange} />
-            </label>
+
+            <button
+              onClick={pickFromGallery}
+              className="flex items-center gap-2 w-full px-4 py-2 hover:bg-[#e8faff]"
+            >
+              <GalleryIcon className="h-5 w-5 text-[#1ebac1]" /> Upload from Gallery
+            </button>
           </div>
         )}
       </div>
 
-      {/* Preview */}
       {photo && (
-        <div className="mt-4 text-center w-full max-w-sm">
+        <div className="mt-4 w-full max-w-sm text-center">
           <p className="text-sm text-gray-700 mb-1">Preview:</p>
           <img
             src={photo}
-            alt="Preview"
-            className="w-full h-40 object-contain rounded-md border"
+            className="w-full h-44 object-contain rounded-lg border"
           />
         </div>
       )}
 
-      {/* Upload Button */}
-      {photo && fileName && (
-        <button
-          onClick={handleUpload}
-          className="mt-4 w-full max-w-sm bg-[#1ebac1] text-white py-2 rounded-lg hover:bg-[#1ebac1] transition"
-        >
-          Submit
-        </button>
+      {photo && (
+        <div className="fixed bottom-0 left-0 w-full bg-white shadow-lg p-4">
+          <button
+            onClick={handleUpload}
+            className="w-full bg-[#1ebac1] text-white py-3 rounded-xl text-lg"
+          >
+            Submit
+          </button>
+        </div>
       )}
     </div>
-
   );
 };
 
