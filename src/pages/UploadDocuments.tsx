@@ -1,98 +1,132 @@
-import { useState } from "react";
+import React, { useState } from "react";
 import {
-  Upload,
-  FileText,
-  Camera as CameraIcon,
-  ArrowLeft,
-  Image as GalleryIcon,
-} from "lucide-react";
+  Camera,
+  CameraResultType,
+  CameraSource,
+  Photo
+} from "@capacitor/camera";
+import { Capacitor } from "@capacitor/core";
+import { ArrowLeft, Camera as CameraIcon } from "lucide-react";
 import { useNavigate } from "react-router-dom";
 import { Preferences } from "@capacitor/preferences";
 import { useToast } from "@/hooks/use-toast";
-import { Camera, CameraResultType, CameraSource } from "@capacitor/camera";
 
-const UploadDocuments = () => {
-  const [claimNumber, setClaimNumber] = useState("");
-  const [fileName, setFileName] = useState("");
-  const [photo, setPhoto] = useState<string | null>(null);
-  const [showOptions, setShowOptions] = useState(false);
+interface UploadedFile {
+  claimNumber: string;
+  fileName: string;
+  uploadedAt: string;
+  photos: string[];
+}
+
+const UploadDocuments: React.FC = () => {
+  const [claimNumber, setClaimNumber] = useState<string>("");
+  const [fileNames, setFileNames] = useState<string[]>([]);
+  const [photos, setPhotos] = useState<string[]>([]);
+
   const { toast } = useToast();
   const navigate = useNavigate();
 
-  const handleFileChange = (event: React.ChangeEvent<HTMLInputElement>) => {
-    const file = event.target.files?.[0];
-    if (file) {
-      setFileName(file.name);
-      setPhoto(URL.createObjectURL(file));
-      setShowOptions(false);
-    }
-  };
-
-  const takePhoto = async () => {
+  const openPicker = async (): Promise<void> => {
     try {
-      const image = await Camera.getPhoto({
-        quality: 90,
-        resultType: CameraResultType.DataUrl,
-        source: CameraSource.Camera,
-      });
+      if (Capacitor.isNativePlatform()) {
+        const image: Photo = await Camera.getPhoto({
+          quality: 85,
+          allowEditing: false,
+          resultType: CameraResultType.DataUrl,
+          source: CameraSource.Prompt,
+          promptLabelHeader: "Upload Document",
+          promptLabelCancel: "Cancel",
+          promptLabelPhoto: "Choose Photo",
+          promptLabelPicture: "Take Photo"
+        });
 
-      setPhoto(image.dataUrl!);
-      setFileName("captured-photo.jpg");
-      setShowOptions(false);
-    } catch (error) {
-      console.log(error);
+        if (image.dataUrl) {
+          setPhotos((prev) => [...prev, image.dataUrl!]);
+          setFileNames((prev) => [
+            ...prev,
+            image.format ? `photo.${image.format}` : "photo.jpg"
+          ]);
+        }
+        return;
+      }
+      const input = document.createElement("input");
+      input.type = "file";
+      input.accept = "image/*";
+      input.multiple = true;
+
+      input.onchange = (e: Event) => {
+        const fileList = (e.target as HTMLInputElement).files;
+        if (!fileList) return;
+
+        Array.from(fileList).forEach((file: File) => {
+          const reader = new FileReader();
+          reader.onload = () => {
+            setPhotos((prev) => [...prev, reader.result as string]);
+            setFileNames((prev) => [...prev, file.name]);
+          };
+          reader.readAsDataURL(file);
+        });
+      };
+
+      input.click();
+    } catch (err: unknown) {
+      const message =
+        err instanceof Error ? err.message : "Failed to open picker";
+
+      if (message.includes("cancelled")) return;
+
+      toast({
+        title: "Error",
+        description: "Failed to open camera/gallery",
+        variant: "destructive"
+      });
     }
   };
 
-  const pickFromGallery = async () => {
-    try {
-      const image = await Camera.getPhoto({
-        quality: 90,
-        resultType: CameraResultType.DataUrl,
-        source: CameraSource.Photos,
-      });
-
-      setPhoto(image.dataUrl!);
-      setFileName("gallery-photo.jpg");
-      setShowOptions(false);
-    } catch (error) {
-      console.log(error);
-    }
-  };
-
-  const handleUpload = async () => {
+  const handleUpload = async (): Promise<void> => {
     if (!claimNumber.trim()) {
-      alert("Please enter Claim Number");
-      return;
-    }
-    if (!fileName || !photo) {
-      alert("Please choose or capture a document first");
+      toast({
+        title: "Missing Claim Number",
+        description: "Please enter a claim number",
+        variant: "destructive"
+      });
       return;
     }
 
-    const { value } = await Preferences.get({ key: "uploadedFiles" });
-    const files = value ? JSON.parse(value) : [];
+    if (photos.length === 0) {
+      toast({
+        title: "No Photos",
+        description: "Please upload at least one photo",
+        variant: "destructive"
+      });
+      return;
+    }
+
+    const existing = await Preferences.get({ key: "uploadedFiles" });
+    const files: UploadedFile[] = existing.value
+      ? JSON.parse(existing.value)
+      : [];
 
     files.push({
       claimNumber,
-      fileName,
+      fileName: fileNames.join(", "),
       uploadedAt: new Date().toISOString(),
-      photoData: photo,
+      photos
     });
 
     await Preferences.set({
       key: "uploadedFiles",
-      value: JSON.stringify(files),
+      value: JSON.stringify(files)
     });
 
     toast({
-      title: "Uploaded Successfully",
-      description: `Document for claim #${claimNumber} submitted.`,
+      title: "Success",
+      description: `Uploaded ${photos.length} document(s) successfully`
     });
 
     setClaimNumber("");
-    setFileName("");
-    setPhoto(null);
+    setFileNames([]);
+    setPhotos([]);
     navigate("/staff-home");
   };
 
@@ -101,67 +135,60 @@ const UploadDocuments = () => {
       <div className="flex items-center w-full max-w-sm mt-6 gap-3">
         <ArrowLeft
           className="h-6 w-6 text-[#1ebac1] cursor-pointer"
-          onClick={() => navigate("/staff-home")}
+          onClick={() => navigate("/staff-dashboard ")}
         />
         <h2 className="text-xl font-bold text-[#1ebac1]">Upload Document</h2>
       </div>
 
-      <div className="w-full max-w-sm mt-6">
-        <label className="text-sm text-gray-700 font-semibold">Claim Number</label>
+      <div className="w-full max-w-sm mt-8">
+        <label className="block text-sm font-semibold text-gray-700 mb-1">
+          Claim Number
+        </label>
         <input
           type="text"
           placeholder="Enter Claim Number"
           value={claimNumber}
           onChange={(e) => setClaimNumber(e.target.value)}
-          className="w-full border border-[#1ebac1] rounded-lg p-2 mt-1 text-sm focus:ring-2 focus:ring-[#1ebac1]"
+          className="w-full px-3 py-2 border border-[#1ebac1] rounded-lg focus:outline-none focus:ring-2 focus:ring-[#1ebac1] text-sm"
         />
       </div>
-
-      <div
-        className="w-full max-w-sm mt-6 bg-white border border-[#1ebac1] rounded-xl p-6 text-center cursor-pointer shadow-sm hover:shadow-md transition relative"
-        onClick={() => setShowOptions(!showOptions)}
+      <button
+        onClick={openPicker}
+        className="mt-8 w-full max-w-sm bg-white border-2 border-dashed border-[#1ebac1] rounded-xl p-10 text-center hover:bg-[#f8fdff] transition-shadow hover:shadow-md"
       >
-        <CameraIcon className="h-10 w-10 text-[#1ebac1] mx-auto" />
-        <p className="text-gray-600 text-sm mt-2">
-          Take Photo 
+        <CameraIcon className="mx-auto h-8 w-8 text-[#1ebac1]" />
+        <p className="mt-4 text-lg font-medium text-gray-700">
+          {photos.length > 0 ? "Add More Photos" : "Take Photo"}
         </p>
-
-        {showOptions && (
-          <div className="absolute top-full left-0 w-full bg-white border rounded-xl shadow-lg mt-2 py-2 z-20">
-            <button
-              onClick={takePhoto}
-              className="flex items-center gap-2 w-full px-4 py-2 hover:bg-[#e8faff]"
-            >
-              <CameraIcon className="h-5 w-5 text-[#1ebac1]" /> Take Photo
-            </button>
-
-            <button
-              onClick={pickFromGallery}
-              className="flex items-center gap-2 w-full px-4 py-2 hover:bg-[#e8faff]"
-            >
-              <GalleryIcon className="h-5 w-5 text-[#1ebac1]" /> Upload from Gallery
-            </button>
-          </div>
+        {fileNames.length > 0 && (
+          <p className="text-sm text-gray-500 mt-2">
+            {fileNames.length} file(s) selected
+          </p>
         )}
-      </div>
+      </button>
 
-      {photo && (
-        <div className="mt-4 w-full max-w-sm text-center">
-          <p className="text-sm text-gray-700 mb-1">Preview:</p>
-          <img
-            src={photo}
-            className="w-full h-44 object-contain rounded-lg border"
-          />
+      {photos.length > 0 && (
+        <div className="mt-6 w-full max-w-sm grid grid-cols-2 gap-4 pb-32">
+          {photos.map((p, index) => (
+            <div key={index} className="border rounded-lg p-1 bg-white shadow">
+              <img
+                src={p}
+                alt={`Preview ${index + 1}`}
+                className="w-full h-32 object-contain rounded"
+              />
+              <p className="text-xs text-center mt-1">{fileNames[index]}</p>
+            </div>
+          ))}
         </div>
       )}
 
-      {photo && (
-        <div className="fixed bottom-0 left-0 w-full bg-white shadow-lg p-4">
+      {photos.length > 0 && (
+        <div className="fixed bottom-0 left-0 right-0 bg-white shadow-2xl p-4">
           <button
             onClick={handleUpload}
-            className="w-full bg-[#1ebac1] text-white py-3 rounded-xl text-lg"
+            className="w-full max-w-sm mx-auto block bg-[#1ebac1] text-white font-semibold py-3 rounded-xl text-lg hover:bg-[#17a2a9] transition"
           >
-            Submit
+            Submit Documents
           </button>
         </div>
       )}
