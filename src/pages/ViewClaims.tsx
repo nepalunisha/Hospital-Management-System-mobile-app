@@ -1,17 +1,50 @@
 import { useNavigate } from "react-router-dom";
-import { ArrowLeft } from "lucide-react";
+import { ArrowLeft, Calendar } from "lucide-react";
 import { useClaims } from "./ClaimsContext";
+import { useState, useEffect } from "react";
+import { NepaliDatePicker } from "nepali-datepicker-reactjs";
+import NepaliDate from "nepali-date-converter";
+import "nepali-datepicker-reactjs/dist/index.css";
 
 const ViewClaims: React.FC = () => {
   const { claims } = useClaims();
   const navigate = useNavigate();
 
+  const [startDate, setStartDate] = useState<string>("");
+  const [endDate, setEndDate] = useState<string>("");
+  const [filteredClaims, setFilteredClaims] = useState(claims);
+
+  useEffect(() => {
+    try {
+      const today = new NepaliDate().format("YYYY-MM-DD");
+      setStartDate(today);
+      setEndDate(today);
+    } catch (error) {
+      console.error("Failed to set Nepali date:", error);
+      setStartDate("2082-08-15");
+      setEndDate("2082-08-15");
+    }
+  }, []);
+
+  useEffect(() => {
+    if (!startDate || !endDate) {
+      setFilteredClaims(claims);
+      return;
+    }
+
+    const filtered = claims.filter((c) => {
+      const adDate = new Date(c.createdAt);
+      const bsDate = new NepaliDate(adDate).format("YYYY-MM-DD");
+      return bsDate >= startDate && bsDate <= endDate;
+    });
+
+    setFilteredClaims(filtered);
+  }, [startDate, endDate, claims]);
+
   const openDocument = (base64: string, fileName?: string) => {
     if (!base64) return;
 
-
     const base64Data = base64.includes(",") ? base64.split(",")[1] : base64;
-
     const byteCharacters = atob(base64Data);
     const byteNumbers = new Array(byteCharacters.length);
     for (let i = 0; i < byteCharacters.length; i++) {
@@ -19,7 +52,6 @@ const ViewClaims: React.FC = () => {
     }
     const byteArray = new Uint8Array(byteNumbers);
 
-    // file type
     const fileType = fileName?.split(".").pop()?.toLowerCase();
     const mimeType =
       fileType === "png" || fileType === "jpg" || fileType === "jpeg"
@@ -34,7 +66,6 @@ const ViewClaims: React.FC = () => {
 
   return (
     <div className="min-h-screen bg-[#f8fafc] flex flex-col pb-10 px-4">
-      {/* Back */}
       <div className="absolute top-6 left-4 mt-8">
         <button
           onClick={() => navigate("/staff-dashboard")}
@@ -47,20 +78,39 @@ const ViewClaims: React.FC = () => {
         </button>
       </div>
 
-      {/* claim list */}
-      <div className="flex flex-col mt-20 gap-4">
-        {claims.length === 0 && (
+      <div className="mt-28 mb-4 flex items-center gap-2">
+        <div className="relative w-full h-8">
+          <NepaliDatePicker
+            value={startDate}
+            onChange={(date: string) => setStartDate(date)}
+            inputClassName="border border-[#1ebac1] rounded-xl px-2 py-1 w-full pr-10"
+          />
+          <Calendar className="absolute right-2 top-1/2 -translate-y-1/2 text-[#1ebac1] pointer-events-none" />
+        </div>
+        <button
+          onClick={() => {
+            const today = new NepaliDate().format("YYYY-MM-DD");
+            setStartDate(today);
+            setEndDate(today);
+          }}
+          className="bg-[#1ebac1] text-white px-3 py-1 rounded-xl text-sm hover:bg-gray-400"
+        >
+          Reset
+        </button>
+      </div>
+
+      <div className="flex flex-col gap-4">
+        {filteredClaims.length === 0 && (
           <p className="text-center text-gray-500 mt-10">
-            No claims submitted yet.
+            No claims submitted for selected date.
           </p>
         )}
 
-        {claims.map((c, index) => (
+        {filteredClaims.map((c, index) => (
           <div
             key={index}
             className="bg-white rounded-xl shadow p-4 flex flex-col gap-2 border border-gray-200"
           >
-          
             <div className="flex justify-between items-center">
               <p className="font-semibold text-sm">{c.patient?.name}</p>
               <p className="text-xs text-gray-500">{c.createdAt}</p>
@@ -76,7 +126,6 @@ const ViewClaims: React.FC = () => {
               <span>Outcome: {c.outcome}</span>
             </div>
 
-            {/* Uploaded Doc */}
             <div className="mt-2">
               {c.prescriptionFileBase64 ? (
                 <button
@@ -88,7 +137,7 @@ const ViewClaims: React.FC = () => {
                   {c.prescriptionFileName || "Open Document"}
                 </button>
               ) : (
-                <span className="inline-block bg-gray-300 text-white px-3 py-1 rounded text-xs">
+                <span className="inline-block bg-[#1ebac1] text-white px-3 py-1 rounded text-xs">
                   No Document Uploaded
                 </span>
               )}
