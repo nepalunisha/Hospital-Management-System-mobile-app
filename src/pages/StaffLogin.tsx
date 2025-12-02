@@ -92,7 +92,6 @@ const StaffLogin = () => {
   return (
     <div className="min-h-screen flex flex-col bg-[#e8f9ff]">
 
-      {/* Header */}
         <div className="w-full bg-[#1ebac1] pt-12 pb-10 flex flex-col items-center shadow-md">
         <img
           src={Logo}
@@ -100,7 +99,6 @@ const StaffLogin = () => {
           className="w-40 h-40 rounded-full bg-white p-3 shadow-xl"
         />
 
-        {/* Back*/}
         <button
           onClick={() => navigate("/")}
           className="absolute top-6 left-4 flex items-center gap-2 text-white font-medium"
@@ -108,7 +106,6 @@ const StaffLogin = () => {
           <ArrowLeft className="h-6 w-6" /> 
         </button>
 
-        {/* Title */}
         <div className="flex flex-col items-center mt-6">
           <h1 className="text-3xl font-bold text-white">Staff Login</h1>
           <p className="text-white/90 text-sm mt-1">
@@ -117,14 +114,12 @@ const StaffLogin = () => {
         </div>
       </div>
 
-      {/*  Form */}
       <div className="flex-1 px-6 mt-10">
         <form
           onSubmit={handleSubmit}
           className="max-w-sm mx-auto flex flex-col gap-5"
         >
 
-          {/* Email */}
           <div className="relative">
             <div className="flex items-center gap-3 p-3 border border-[#1ebac1] rounded-xl bg-white shadow-sm">
               <Mail className="h-5 w-5 text-[#1ebac1]" />
@@ -168,8 +163,6 @@ const StaffLogin = () => {
               </div>
             )}
           </div>
-
-          {/* Password */}
           <div className="flex items-center gap-3 p-3 border border-[#1ebac1] rounded-xl bg-white shadow-sm">
             <Lock className="h-5 w-5 text-[#1ebac1]" />
             <Input
@@ -189,7 +182,6 @@ const StaffLogin = () => {
             </button>
           </div>
 
-          {/* Remember Me  */}
           <div className="flex justify-between text-sm px-1">
             <label className="flex items-center accent-[#1ebac1] gap-2">
               <input
@@ -210,17 +202,15 @@ const StaffLogin = () => {
             </button>
           </div>
 
-          {/* Login Button */}
           <Button
             type="submit"
-            className="w-full py-3 rounded-xl bg-[#1ebac1] text-white text-lg shadow-md hover:[#1ebac1] hover:scale-[1.02] transition"
+            className="w-full py-3 rounded-xl bg-[#1ebac1] hover:[#1ebac1] hover:bg-[#1ebac1] text-white text-lg shadow-md  hover:scale-[1.02] transition"
           >
             Log In
           </Button>
         </form>
       </div>
 
-      {/*  Forgot Password Modal */}
       {showForgotPassword && (
         <div className="fixed inset-0 bg-black/40 flex items-center justify-center p-4 z-50">
           <div className="w-full max-w-sm bg-white rounded-2xl p-6 space-y-4 shadow-xl">
