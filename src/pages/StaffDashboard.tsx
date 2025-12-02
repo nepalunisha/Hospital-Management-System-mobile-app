@@ -106,7 +106,7 @@ const StaffDashboard = () => {
     <div className="min-h-screen bg-gradient-to-b from-[#f0f7ff] to-[#e0f0ff] flex flex-col items-center p-4">
       <div className="w-full max-w-sm flex items-center mt-6 gap-4">
         <ArrowLeft
-          className="h-6 w-6 text-[#1ebac1] cursor-pointer hover:text-[#003b73] transition-colors"
+          className="h-6 w-6 text-[#1ebac1] cursor-pointer hover:text-[#1ebac1] transition-colors"
           onClick={() => navigate("/staff-home")}
         />
         <h1 className="text-xl font-bold text-[#1ebac1]">Prepare Insurance Claim</h1>
