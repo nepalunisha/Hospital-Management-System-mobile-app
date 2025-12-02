@@ -225,7 +225,7 @@ const StaffPrepareClaim: React.FC = () => {
           >
             <Upload className="h-8 w-8 text-[#1ebac1] mx-auto mb-2" />
             <p className="text-gray-500 text-sm">
-              {prescriptionFile ? "File Uploaded succesfully" : "Click to upload or Drag/drop files here"}
+              {prescriptionFile ? "File Uploaded succesfully" : "Click to upload  files here"}
             </p>
             <p className="text-xs mt-2">{fileName}</p>
           </div>
@@ -385,10 +385,11 @@ const StaffPrepareClaim: React.FC = () => {
           ))}
 
       <div className="fixed bottom-0 left-0 w-full bg-white p-4 shadow-lg z-50">
+
         <Button
           type="submit"
           disabled={loading}
-          className="w-full bg-[#1ebac1] text-white h-14 text-lg"
+          className="w-full bg-[#1ebac1] text-white h-14 text-lg hover:[#1ebac1]  hover:bg-[#1ebac1]"
         >
           {loading ? "Preparing..." : "Prepare Claim"}
         </Button>
@@ -403,11 +404,9 @@ const StaffPrepareClaim: React.FC = () => {
       {/* Bottom Sheet Confirmation  */}
     {showConfirmModal && claimData && (
   <div className="fixed inset-0 bg-black/50 z-50 flex items-end justify-center">
-    
-    {/* Bottom Sheet */}
+
     <div className="w-full bg-white rounded-t-2xl max-h-[95vh] flex flex-col animate-slide-up">
 
-      {/* Drag handle */}
       <div className="p-4 pb-2">
         <div className="w-12 h-1.5 bg-gray-300 rounded-full mx-auto"></div>
         <h2 className="text-xl sm:text-2xl font-bold text-[#1ebac1] text-center mt-3">
@@ -415,7 +414,6 @@ const StaffPrepareClaim: React.FC = () => {
         </h2>
       </div>
 
-      {/* Content */}
       <div className="flex-1 overflow-y-auto px-4 sm:px-6 pb-8">
 
         <Card className="border border-gray-200 rounded-lg mb-3">
@@ -457,7 +455,6 @@ const StaffPrepareClaim: React.FC = () => {
         </div>
       </div>
 
-      {/* confirm and cancel button  */}
       <div className="p-4 bg-white border-t sticky bottom-0">
         <div className="flex flex-col sm:flex-row gap-2">
           <Button
@@ -469,7 +466,7 @@ const StaffPrepareClaim: React.FC = () => {
           </Button>
 
           <Button
-            className="bg-[#1ebac1] text-white w-full"
+            className="bg-[#1ebac1] text-white  hover:bg-[#1ebac1] w-full"
             onClick={() => finalizeClaim(claimData)}
           >
             Confirm & Submit
