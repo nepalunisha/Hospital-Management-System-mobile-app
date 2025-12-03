@@ -8,16 +8,6 @@ import "nepali-datepicker-reactjs/dist/index.css";
 
 const ViewClaims: React.FC = () => {
   const { claims } = useClaims();
-  const navigate = useNavigate();import { useNavigate } from "react-router-dom";
-import { ArrowLeft, Calendar } from "lucide-react";
-import { useClaims } from "./ClaimsContext";
-import { useState, useEffect } from "react";
-import { NepaliDatePicker } from "nepali-datepicker-reactjs";
-import NepaliDate from "nepali-date-converter";
-import "nepali-datepicker-reactjs/dist/index.css";
-
-const ViewClaims: React.FC = () => {
-  const { claims } = useClaims();
   const navigate = useNavigate();
 
   const [startDate, setStartDate] = useState<string>("");
